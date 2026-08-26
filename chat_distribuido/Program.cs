@@ -51,7 +51,7 @@ async Task HandlePeerAsync(Socket socket)
                     case "HELLO":
                         peer.Nickname = from;
                         peer.ListenPort = int.Parse(text);
-                        lock (peers) peers[from] = peer;
+                        peers[from] = peer;
                         Console.WriteLine($"* {from} entrou na conversa.");
                         break;
 
@@ -64,7 +64,7 @@ async Task HandlePeerAsync(Socket socket)
                         break;
 
                     case "LEAVE":
-                        lock (peers) peers.Remove(from);
+                        peers.Remove(from);
                         Console.WriteLine($"* {from} saiu da conversa.");
                         break;
                 }
@@ -81,7 +81,7 @@ async Task HandlePeerAsync(Socket socket)
         if (peer.Nickname is not null)
         {
             bool removed;
-            lock (peers) removed = peers.Remove(peer.Nickname);
+            removed = peers.Remove(peer.Nickname);
             if (removed)
                 Console.WriteLine($"* {peer.Nickname} saiu da conversa (conexão perdida).");
         }
@@ -127,7 +127,7 @@ try
         if (line.Equals("/list", StringComparison.OrdinalIgnoreCase))
         {
             List<string> names;
-            lock (peers) names = peers.Keys.ToList();
+            names = peers.Keys.ToList();
             Console.WriteLine(names.Count == 0 ? "(ninguém conectado)" : string.Join(", ", names));
             continue;
         }
@@ -146,7 +146,7 @@ try
             var text = rest[(sep + 1)..];
 
             Peer? target;
-            lock (peers) peers.TryGetValue(to, out target);
+            peers.TryGetValue(to, out target);
             if (target is null)
                 Console.WriteLine($"Apelido desconhecido: {to}");
             else
@@ -161,7 +161,7 @@ try
         }
 
         List<Peer> all;
-        lock (peers) all = peers.Values.ToList();
+        all = peers.Values.ToList();
         foreach (var p in all)
             p.Send("CHAT", config.Nickname, "", line);
     }
@@ -171,7 +171,7 @@ catch (OperationCanceledException)
 }
 
 List<Peer> allPeers;
-lock (peers) allPeers = peers.Values.ToList();
+allPeers = peers.Values.ToList();
 foreach (var peer in allPeers)
     peer.Send("LEAVE", config.Nickname, "", "");
 
