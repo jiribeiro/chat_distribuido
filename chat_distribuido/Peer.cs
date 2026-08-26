@@ -17,8 +17,7 @@ class Peer
     public void Send(string type, string from, string to, string text)
     {
         if (!_alive) return;
-        lock (_outbox)
-            _outbox.Enqueue($"{type}|{from}|{to}|{text}");
+        _outbox.Enqueue($"{type}|{from}|{to}|{text}");
     }
 
     public async Task WriteLoopAsync()
@@ -26,8 +25,7 @@ class Peer
         while (_alive)
         {
             string? msg = null;
-            lock (_outbox)
-                if (_outbox.Count > 0) msg = _outbox.Dequeue();
+            if (_outbox.Count > 0) msg = _outbox.Dequeue();
 
             if (msg is null)
             {
