@@ -9,7 +9,7 @@ class Peer
     public string? Nickname;
     public int ListenPort;
 
-    readonly Queue<string> _outbox = new();
+    readonly Queue<string> _queue = new();
     volatile bool _alive = true;
 
     public Peer(Socket socket) => Socket = socket;
@@ -17,7 +17,7 @@ class Peer
     public void Send(string type, string from, string to, string text)
     {
         if (!_alive) return;
-        _outbox.Enqueue($"{type}|{from}|{to}|{text}");
+        _queue.Enqueue($"{type}|{from}|{to}|{text}");
     }
 
     public async Task WriteLoopAsync()
@@ -25,7 +25,7 @@ class Peer
         while (_alive)
         {
             string? msg = null;
-            if (_outbox.Count > 0) msg = _outbox.Dequeue();
+            if (_queue.Count > 0) msg = _queue.Dequeue();
 
             if (msg is null)
             {
