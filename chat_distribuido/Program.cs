@@ -5,7 +5,6 @@ using chat_distribuido;
 
 if (args.Length < 1)
 {
-    Console.WriteLine("Uso: dotnet run -- <caminho-do-config.json>");
     return 1;
 }
 

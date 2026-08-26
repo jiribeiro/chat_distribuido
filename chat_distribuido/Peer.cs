@@ -10,34 +10,30 @@ class Peer
     public int ListenPort;
 
     readonly Queue<string> _outbox = new();
-    readonly SemaphoreSlim _signal = new(0);
     volatile bool _alive = true;
 
     public Peer(Socket socket) => Socket = socket;
-
 
     public void Send(string type, string from, string to, string text)
     {
         if (!_alive) return;
         lock (_outbox)
-        {
-            if (_outbox.Count >= 100)
-                _outbox.Dequeue();
             _outbox.Enqueue($"{type}|{from}|{to}|{text}");
-        }
-        _signal.Release();
     }
 
     public async Task WriteLoopAsync()
     {
         while (_alive)
         {
-            await _signal.WaitAsync();
-
             string? msg = null;
             lock (_outbox)
                 if (_outbox.Count > 0) msg = _outbox.Dequeue();
-            if (msg is null) continue;
+
+            if (msg is null)
+            {
+                await Task.Delay(50);
+                continue;
+            }
 
             try
             {
@@ -55,7 +51,6 @@ class Peer
     {
         if (!_alive) return;
         _alive = false;
-        _signal.Release();
         try { Socket.Shutdown(SocketShutdown.Both); } catch { }
         try { Socket.Close(); } catch { }
     }
